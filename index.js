@@ -20,6 +20,13 @@ const morningReplies = [
   "朝から元気だな",
 ];
 
+// ★ここに追加（morningRepliesの近くが管理しやすい）
+const luffyReplies = [
+  "海賊王に俺はなる！",
+  "腹減った！肉食おうぜ！",
+  "仲間は絶対に守る！",
+];
+
 let lastReplyAt = 0;
 const COOLDOWN_MS = 60 * 1000;
 
@@ -39,6 +46,15 @@ client.on("messageCreate", (message) => {
   if (message.content.includes("おは")) {
     lastReplyAt = now;
     message.channel.send(pick(morningReplies));
+  }
+});
+
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (interaction.commandName === "ルフィ") {
+    // ★ここを置き換え
+    await interaction.reply(pick(luffyReplies));
   }
 });
 
