@@ -383,22 +383,42 @@ function disconnectVoice(guild) {
 
 // 再生
 async function playRandomSound(guild) {
-  if (!soundFiles.length) return { ok: false, reason: "sounds/ に mp3/wav がねぇ！" };
+  if (!soundFiles.length) {
+    console.log("❌ sounds/ にファイルが無い");
+    return { ok: false, reason: "sounds/ に mp3/wav がねぇ！" };
+  }
 
   const now = Date.now();
   if (now - soundLastAt < SOUND_COOLDOWN_MS) {
+    console.log("⏳ クールダウン中");
     return { ok: false, reason: "ちょい待て！連打すんな！" };
   }
   soundLastAt = now;
 
   const ensure = await ensureVoiceConnected(guild);
-  if (!ensure.ok) return ensure;
+  if (!ensure.ok) {
+    console.log("❌ VC接続失敗:", ensure.reason);
+    return ensure;
+  }
 
   const sound = pick(soundFiles);
-  const resource = createAudioResource(
-    path.join(SOUND_DIR, sound),
-    { inputType: StreamType.Arbitrary }
-  );  activePlayer.play(resource);
+  console.log("🔊 picked:", sound);
+
+  const filePath = path.join(SOUND_DIR, sound);
+  console.log("📁 path:", filePath);
+
+  const resource = createAudioResource(filePath, {
+    inputType: StreamType.Arbitrary, // ★ Linux安定用
+  });
+
+  // 状態ログ（毎回つけてもOK。重複防止したいなら外に出してもいい）
+  activePlayer.removeAllListeners("stateChange");
+  activePlayer.on("stateChange", (oldState, newState) => {
+    console.log("🎵 state:", oldState.status, "→", newState.status);
+  });
+
+  activePlayer.play(resource);
+  console.log("🎧 play() called");
 
   return { ok: true };
 }
