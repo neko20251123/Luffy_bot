@@ -401,6 +401,12 @@ async function playRandomSound(guild) {
     return ensure;
   }
 
+  const connection = getVoiceConnection(guild.id);
+  if (connection) {
+    connection.subscribe(activePlayer);
+    console.log("🔗 subscribed player to connection");
+  }
+
   const sound = pick(soundFiles);
   console.log("🔊 picked:", sound);
 
