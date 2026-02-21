@@ -9,6 +9,7 @@ const {
   AudioPlayerStatus,
   VoiceConnectionStatus,
   entersState,
+  StreamType,
 } = require("@discordjs/voice");
 
 const fs = require("fs");
@@ -394,8 +395,10 @@ async function playRandomSound(guild) {
   if (!ensure.ok) return ensure;
 
   const sound = pick(soundFiles);
-  const resource = createAudioResource(path.join(SOUND_DIR, sound));
-  activePlayer.play(resource);
+  const resource = createAudioResource(
+    path.join(SOUND_DIR, sound),
+    { inputType: StreamType.Arbitrary }
+  );  activePlayer.play(resource);
 
   return { ok: true };
 }
