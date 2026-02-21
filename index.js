@@ -108,50 +108,62 @@ const luffyReplies = [
 
 // ====== 懸賞金データ（実在額ベース） ======
 const BOUNTIES = [
-  // --- 麦わらの一味（公式） ---
-  { name: "ルフィ", amount: 3000000000 },
-  { name: "ゾロ", amount: 1111000000 },
-  { name: "サンジ", amount: 1032000000 },
-  { name: "ジンベエ", amount: 1100000000 },
-  { name: "ロビン", amount: 930000000 },
-  { name: "ウソップ", amount: 500000000 },
-  { name: "ナミ", amount: 366000000 },
-  { name: "フランキー", amount: 394000000 },
-  { name: "ブルック", amount: 383000000 },
-  { name: "チョッパー", amount: 1000 },
+  // ====== 原作・公式枠（canon） ======
+  // 麦わら
+  { name: "ルフィ", amount: 3000000000, isMeme: false },
+  { name: "ゾロ", amount: 1111000000, isMeme: false },
+  { name: "サンジ", amount: 1032000000, isMeme: false },
+  { name: "ジンベエ", amount: 1100000000, isMeme: false },
+  { name: "ロビン", amount: 930000000, isMeme: false },
+  { name: "ウソップ", amount: 500000000, isMeme: false },
+  { name: "フランキー", amount: 394000000, isMeme: false },
+  { name: "ブルック", amount: 383000000, isMeme: false },
+  { name: "ナミ", amount: 366000000, isMeme: false },
+  { name: "チョッパー", amount: 1000, isMeme: false },
 
-  // --- クロスギルド（原作で提示された数値として有名） ---
-  { name: "バギー", amount: 3189000000 },
-  { name: "ミホーク", amount: 3590000000 },
-  { name: "クロコダイル", amount: 1965000000 },
+  // クロスギルド（数字は有名な提示）
+  { name: "バギー", amount: 3189000000, isMeme: false },
+  { name: "ミホーク", amount: 3590000000, isMeme: false },
+  { name: "クロコダイル", amount: 1965000000, isMeme: false }, //  [oai_citation:2‡ワンピースウィキ](https://onepiece.fandom.com/wiki/Chapter_1058?utm_source=chatgpt.com)
 
-  // --- 四皇級/伝説級（原作で提示された数値として広く知られる） ---
-  { name: "シャンクス", amount: 4048900000 },
-  { name: "黒ひげ", amount: 3996000000 },
-  { name: "カイドウ", amount: 4611100000 },
-  { name: "ビッグ・マム", amount: 4388000000 },
-  { name: "白ひげ", amount: 5046000000 },
-  { name: "ロジャー", amount: 5564800000 },
+  // 四皇・伝説級（有名な提示）
+  { name: "シャンクス", amount: 4048900000, isMeme: false },
+  { name: "黒ひげ", amount: 3996000000, isMeme: false },
+  { name: "カイドウ", amount: 4611100000, isMeme: false },
+  { name: "ビッグ・マム", amount: 4388000000, isMeme: false },
+  { name: "白ひげ", amount: 5046000000, isMeme: false },
+  { name: "ロジャー", amount: 5564800000, isMeme: false }, //  [oai_citation:3‡ONE Esports](https://www.oneesports.gg/anime/highest-one-piece-bounties/?utm_source=chatgpt.com)
 
-  // --- 最悪の世代/同額枠（30億） ---
-  { name: "ロー", amount: 3000000000 },
-  { name: "キッド", amount: 3000000000 },
+  // 最悪の世代（同額枠）
+  { name: "ロー", amount: 3000000000, isMeme: false },
+  { name: "キッド", amount: 3000000000, isMeme: false },
 
-  // --- ここから“盛り上がる”中堅～有名どころ（必要なら追加していく運用） ---
-  { name: "エース", amount: 550000000 },
-  { name: "サボ", amount: 602000000 },
-  { name: "カタクリ", amount: 1057000000 },
-  { name: "キング", amount: 1390000000 },
-  { name: "クイーン", amount: 1320000000 },
-  { name: "ジャック", amount: 1000000000 },
+  // 中堅〜人気どころ（あなたの手持ち）
+  { name: "エース", amount: 550000000, isMeme: false },
+  { name: "サボ", amount: 602000000, isMeme: false },
+  { name: "カタクリ", amount: 1057000000, isMeme: false },
+  { name: "キング", amount: 1390000000, isMeme: false },
+  { name: "クイーン", amount: 1320000000, isMeme: false },
+  { name: "ジャック", amount: 1000000000, isMeme: false },
+  { name: "ドフラミンゴ", amount: 340000000, isMeme: false },
 
-  { name: "ドフラミンゴ", amount: 340000000 },
-  { name: "ハンコック", amount: 1659000000 },
-  { name: "バルトロメオ", amount: 200000000 },
-  { name: "キャベンディッシュ", amount: 330000000 },
-  { name: "サイ", amount: 210000000 },
+  // 追加：ハンコック（有名な提示）
+  { name: "ハンコック", amount: 1659000000, isMeme: false }, //  [oai_citation:4‡ワンピースウィキ](https://onepiece.fandom.com/wiki/Boa_Hancock?utm_source=chatgpt.com)
 
-  // “ネタ枠”を増やすならここに追加してOK
+
+// “ネタ枠”を増やすならここに追加してOK
+{ name: "偽ルフィ", amount: 26000000, isMeme: true },
+{ name: "偽ゾロ", amount: 15000000, isMeme: true },
+{ name: "偽ナミ", amount: 8000000, isMeme: true },
+{ name: "アルビダ（初期）", amount: 5000000, isMeme: true },
+{ name: "モーガン", amount: 16000000, isMeme: true },
+{ name: "バギー（東の海時代）", amount: 15000000, isMeme: true },
+{ name: "クロ（東の海）", amount: 16000000, isMeme: true },
+{ name: "ドン・クリーク", amount: 17000000, isMeme: true },
+{ name: "ワポル（初期）", amount: 10000000, isMeme: true },
+{ name: "フォクシー", amount: 24000000, isMeme: true },
+{ name: "スパンダム", amount: 100, isMeme: true },
+{ name: "海軍の雑兵", amount: 500, isMeme: true },
 ];
 
 // 懸賞金によってセリフが変わるように定数を設定
@@ -159,39 +171,143 @@ const BOUNTY_REACTIONS = {
   "ルフィ": [
     "俺と同じ額だ！やるじゃねぇか！",
     "同格ってことにしとく！…でも負けねぇぞ！",
+    "30億！？ワクワクする！！",
   ],
   "ゾロ": [
-    "ゾロと同じだ！お前つええな！",
-    "ゾロ級かよ…迷子のくせに強ぇからな！",
+    "ゾロ級かよ！お前つええな！！",
+    "迷子のくせに強ぇからな…お前もヤベぇ！",
   ],
   "サンジ": [
-    "サンジと同じだ！飯食って強くなれ！",
-    "コック級ってことだ！腹減った！",
+    "コック級ってことだ！腹減った！！",
+    "飯食って強くなれ！肉も食え！！",
+  ],
+  "ジンベエ": [
+    "ジンベエと同じか！でけぇ背中してんな！！",
+    "頼れるやつの額だ！！",
   ],
   "ロビン": [
     "ロビン級か…頭も強さもヤベぇぞ！",
     "…生きたいって言える顔してんな！",
   ],
+  "ウソップ": [
+    "ウソップと同じ！？…嘘だろ！？",
+    "その額、ハッタリじゃねぇよな！？",
+  ],
+  "ナミ": [
+    "ナミと同じだ！金の匂いがする！！",
+    "その額、無駄遣いすんなよ！！",
+  ],
+  "フランキー": [
+    "フランキーと同じ！SUPERってやつか！！",
+    "改造したくなる額だな！！",
+  ],
+  "ブルック": [
+    "ブルックと同じ！？骨のくせにやる！！",
+    "ヨホホ…じゃねぇ！強ぇってことだ！！",
+  ],
+  "チョッパー": [
+    "1000！？チョッパーかよ！！",
+    "可愛さで稼いでんのか！？",
+  ],
   "バギー": [
     "バギーと同じ…ってマジか！？世の中わかんねぇ！",
-    "運も実力のうちってやつか！",
+    "運も実力のうちってやつか！！",
   ],
   "ミホーク": [
     "ミホーク級！？斬られたくねぇ！！",
     "剣士でもねぇのに…やるじゃねぇか！",
   ],
   "クロコダイル": [
-    "クロコダイル級か！砂より乾いてねぇな！",
-    "やべぇやつってことだ！",
+    "クロコダイル級か！やべぇやつだ！！",
+    "砂みてぇに乾いた顔してんじゃねぇぞ！！",
+  ],
+  "シャンクス": [
+    "シャンクス級！？…笑ってる場合じゃねぇ！！",
+    "赤髪と同格とか…ヤバすぎだろ！！",
+  ],
+  "黒ひげ": [
+    "黒ひげ級！？笑ってるやつは信用できねぇ！！",
+    "ヤな予感しかしねぇ額だ…！",
+  ],
+  "カイドウ": [
+    "カイドウ級！？化け物かよ！！",
+    "その額…正面からぶつかりてぇ！！",
+  ],
+  "ビッグ・マム": [
+    "ビッグ・マム級！？腹の底から強ぇな！！",
+    "その額…食われんなよ！！",
+  ],
+  "白ひげ": [
+    "白ひげ級…背中がデカすぎるだろ！！",
+    "伝説ってやつか！！",
   ],
   "ロジャー": [
     "ロジャー級はヤバすぎだろ！！",
     "海賊王クラスだ！…勝負だ！！",
   ],
+  "ロー": [
+    "ローと同じ30億！？クールな顔して強ぇな！！",
+    "医者でも海賊でも、強ぇやつは強ぇ！！",
+  ],
+  "キッド": [
+    "キッドと同じ30億！？ケンカ腰で強ぇってことだ！！",
+    "ぶっ壊し系の匂いがする！！",
+  ],
+  "エース": [
+    "エースと同じ！？熱いじゃねぇか！！",
+    "守りたい背中がある顔してる！！",
+  ],
+  "サボ": [
+    "サボと同じ！？燃えてんな！！",
+    "その額…革命の匂いがする！！",
+  ],
+  "カタクリ": [
+    "カタクリ級！？逃げねぇやつの額だ！！",
+    "強ぇのに真面目…手強い！！",
+  ],
+  "キング": [
+    "キング級！？空から落ちてきそうだな！！",
+    "その額…燃えてる！！",
+  ],
+  "クイーン": [
+    "クイーン級！？クセ強ぇのに強ぇって最悪だ！！",
+    "その額…妙にムカつく強さだな！！",
+  ],
+  "ジャック": [
+    "ジャックと同じ10億！？十分ヤベぇ！！",
+    "その額、簡単に背負えねぇぞ！！",
+  ],
+  "ドフラミンゴ": [
+    "ドフラミンゴ級…笑ってるやつは危ねぇ！！",
+    "その額…嫌な強さだ！！",
+  ],
+  "ハンコック": [
+    "ハンコック級！？石にされんなよ！！",
+    "その額…近寄りがてぇ強さだ！！",
+  ],
 };
 
 const BOUNTY_GENERIC = [
   "やるじゃねぇか！仲間になれ！",
+  "おもしれぇ額だな！！",
+  "ワクワクしてきた！！",
+  "いいじゃねぇか！！",
+  "強ぇやつの匂いがする！！",
+  "その額、守りきれよ！！",
+  "俺と戦ってみるか！？",
+  "覚悟決めろよ！！",
+  "海に出る準備はできてんのか！？",
+  "逃げんなよ！！",
+  "その額にビビってねぇよな！？",
+  "悪くねぇ！！気に入った！！",
+  "腹減ってねぇか！？まずは肉だ！！",
+  "その顔、強ぇやつの顔してるぞ！！",
+  "まだ上がる気だろ！？",
+  "へへっ…悪くねぇな！！",
+  "その程度で止まるなよ！！",
+  "もっと上、目指せ！！",
+  "お前ならやれる！！",
+  "海は広いぞ！！行くか！？",
 ];
 
 // ====== 会話クールダウン ======
@@ -329,7 +445,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // ★最重要：先に受理（これで「応答しませんでした」を防ぐ）
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply();
 
   try {
     if (sub === "join") {
@@ -364,25 +480,18 @@ client.on("interactionCreate", async (interaction) => {
 
     if (sub === "bounty") {
       const target = interaction.options.getUser("target") ?? interaction.user;
-
       const entry = pick(BOUNTIES);
+      const formatted = formatBerries(entry.amount);
 
-      // 同額キャラが複数いる場合（例：30億）に備える
-      const sameNames = BOUNTIES
-        .filter((b) => b.amount === entry.amount)
-        .map((b) => b.name);
-
-      const sameText =
-        sameNames.length >= 2
-          ? `…${sameNames.join("・")} と同じ額だな！`
-          : `…${entry.name} と同じ額だな！`;
-
-      const characterReaction =
+      const reaction =
         (BOUNTY_REACTIONS[entry.name] && pick(BOUNTY_REACTIONS[entry.name])) ||
         pick(BOUNTY_GENERIC);
 
       await interaction.editReply(
-        `${target} お前の懸賞金は…… **${formatBerries(entry.amount)}**！！\n${sameText}\n${characterReaction}`
+        `🏴‍☠️ 【懸賞金発表】\n` +
+        `${target} の懸賞金は…… **${formatted}**！！\n` +
+        ` ${entry.name}と同じだ\n` +
+        `${reaction}`
       );
       return;
     }
