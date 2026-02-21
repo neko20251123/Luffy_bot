@@ -351,10 +351,11 @@ async function ensureVoiceConnected(guild) {
   if (existing) return { ok: true, connection: existing, channel: fixedVc };
 
   const connection = joinVoiceChannel({
-    channelId: fixedVc.id,
-    guildId: fixedVc.guild.id,
-    adapterCreator: fixedVc.guild.voiceAdapterCreator,
-    selfDeaf: false, // botは聞こえなくていいが、falseにしておくとトラブル減りがち
+  channelId: fixedVc.id,
+  guildId: fixedVc.guild.id,
+  adapterCreator: fixedVc.guild.voiceAdapterCreator,
+  selfDeaf: false,
+  selfMute: false,
   });
 
   // 接続安定待ち（失敗時に早期でわかる）
