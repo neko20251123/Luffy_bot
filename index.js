@@ -33,6 +33,75 @@ const client = new Client({
   ],
 });
 
+// 読み上げロジック
+const TTS_TMP = path.join(__dirname, "tts.wav");
+
+function sanitizeTtsText(s) {
+  return (s ?? "")
+    .replace(/https?:\/\/\S+/g, "URL")
+    .replace(/<@!?(\d+)>/g, "メンション")
+    .replace(/<#[0-9]+>/g, "チャンネル")
+    .trim()
+    .slice(0, 120);
+}
+
+const { spawn } = require("node:child_process");
+
+function runOpenJtalk(text) {
+  return new Promise((resolve, reject) => {
+    const openjtalk = spawn("open_jtalk", [
+      "-x", "/var/lib/mecab/dic/open-jtalk/naist-jdic",
+      "-m", "/usr/share/hts-voice/nitech-jp-atr503-m001/nitech_jp_atr503_m001.htsvoice",
+      "-ow", TTS_TMP
+    ]);
+
+    openjtalk.stdin.write(text);
+    openjtalk.stdin.end();
+
+    openjtalk.on("close", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error("open_jtalk exited with code " + code));
+    });
+
+    openjtalk.on("error", reject);
+  });
+}
+
+let ttsQueue = Promise.resolve();
+
+async function speakLight(text, guild) {
+  const t = sanitizeTtsText(text);
+  if (!t) return;
+
+  ttsQueue = ttsQueue
+    .then(async () => {
+      // ✅ 常駐してないなら読まない
+      if (!isConnected) return;
+
+      const ensure = await ensureVoiceConnected(guild);
+      if (!ensure.ok) return;
+
+      // ✅ 前の再生が終わってから次へ（tts.wav上書き事故防止）
+      await waitPlayerIdle();
+
+      await runOpenJtalk(t);
+
+      const resource = createAudioResource(TTS_TMP, {
+        inputType: StreamType.Arbitrary,
+      });
+
+      ttsPlayer.play(resource);
+
+      // ✅ この再生が終わるまで待つ
+      await waitPlayerIdle();
+    })
+    .catch((e) => {
+      console.error("❌ TTS error:", e?.message ?? e);
+    });
+
+  return ttsQueue;
+}
+
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 // ====== セリフ ======
@@ -327,10 +396,23 @@ const soundFiles = fs.existsSync(SOUND_DIR)
   ? fs.readdirSync(SOUND_DIR).filter((f) => f.endsWith(".mp3") || f.endsWith(".wav"))
   : [];
 
-let activePlayer = createAudioPlayer();
+let sePlayer = createAudioPlayer();
+let ttsPlayer = createAudioPlayer();
+
+// 互換のため（既存コードが activePlayer を参照してるので）
+// いったんSEは sePlayer、TTSは ttsPlayer を使うように下で直す
+
+async function waitPlayerIdle(timeoutMs = 30_000) {
+  try {
+    if (ttsPlayer.state.status === AudioPlayerStatus.Idle) return;
+    await entersState(ttsPlayer, AudioPlayerStatus.Idle, timeoutMs);
+  } catch {
+    console.log("⚠️ waitPlayerIdle timeout/failed");
+  }
+}
 let lastGuildForPlayer = null;
 
-activePlayer.on("stateChange", (oldState, newState) => {
+sePlayer.on("stateChange", (oldState, newState) =>  {
   console.log("🎵 state:", oldState.status, "→", newState.status);
 
   // 再生終了
@@ -350,7 +432,7 @@ activePlayer.on("stateChange", (oldState, newState) => {
     }
   }
 });
-activePlayer.on("error", (err) => {
+sePlayer.on("error", (err) => {
   console.error("❌ AudioPlayer error:", err?.message ?? err);
   console.error(err);
 });
@@ -426,8 +508,8 @@ connection.once("stateChange", (oldState, newState) => {
     return { ok: false, reason: "VC接続に失敗した！権限/ミュート/VC種類を確認してくれ！" };
   }
 
-  connection.subscribe(activePlayer);
-  return { ok: true, connection, channel: fixedVc };
+connection.subscribe(sePlayer);
+connection.subscribe(ttsPlayer);  return { ok: true, connection, channel: fixedVc };
 }
 
 // 切断
@@ -466,12 +548,6 @@ async function playRandomSound(guild) {
     return ensure;
   }
 
-  const connection = getVoiceConnection(guild.id);
-  if (connection) {
-    connection.subscribe(activePlayer);
-    console.log("🔗 subscribed player to connection");
-  }
-
   const sound = pick(soundFiles);
   console.log("🔊 picked:", sound);
 
@@ -483,7 +559,8 @@ async function playRandomSound(guild) {
   });
 
 lastGuildForPlayer = guild;
-activePlayer.play(resource);
+
+sePlayer.play(resource);
 console.log("🎧 play() called");
 
   return { ok: true };
@@ -501,6 +578,16 @@ client.once("ready", () => {
 // ==========================
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
+
+  // ✅ 「固定VCのテキストチャット」だけ読み上げ
+  // （VCチャットの channelId は LUFFY_VOICE_CHANNEL_ID になる想定）
+  if (message.channel.id === LUFFY_VOICE_CHANNEL_ID) {
+    if (isConnected) {
+      await speakLight(message.content, message.guild);
+    }
+  }
+
+  // ここから下は、今まで通り「ルフィ 〜」会話は TARGET_CHANNEL_ID だけ等
   if (!TARGET_CHANNEL_ID) return;
   if (message.channel.id !== TARGET_CHANNEL_ID) return;
 
