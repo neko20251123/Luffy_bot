@@ -1,5 +1,11 @@
+const dns = require("node:dns");
+dns.setDefaultResultOrder("ipv4first");
+
 require("dotenv").config();
 const { Client, GatewayIntentBits } = require("discord.js");
+let isConnected = false;
+let emptyTimer = null;
+const EMPTY_TIMEOUT = 60 * 1000; // 1分
 
 const {
   joinVoiceChannel,
@@ -377,6 +383,12 @@ function disconnectVoice(guild) {
   const connection = getVoiceConnection(guild.id);
   if (connection) {
     try { connection.destroy(); } catch {}
+
+    isConnected = false;
+    console.log("🔴 常駐モード終了");
+
+    cancelAutoDisconnect(); // ここでタイマー停止が一番安全
+
     return true;
   }
   return false;
@@ -484,6 +496,18 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.editReply(`❌ ${ensure.reason}`);
         return;
       }
+
+      // 🟢 常駐モード開始は join 成功時だけ
+      isConnected = true;
+      console.log("🟢 常駐モード開始");
+
+      // ★ 無人ならタイマー開始
+      cancelAutoDisconnect(); // 念のためリセット
+      const humans = countHumansInFixedVc(interaction.guild);
+      if (humans === 0) {
+        scheduleAutoDisconnect(interaction.guild);
+      }
+
       await interaction.editReply("✅ 了解！固定VCに常駐した！");
       return;
     }
@@ -533,6 +557,72 @@ client.on("interactionCreate", async (interaction) => {
     try {
       await interaction.editReply("❌ なんかエラー出た！ターミナル見てくれ！");
     } catch {}
+  }
+});
+
+// ==========================
+// 👥 VC 無人監視（1分で自動退出）
+// ==========================
+function countHumansInFixedVc(guild) {
+  const vc = getFixedVoiceChannel(guild);
+  if (!vc) return 0;
+
+  // bot以外の人数を数える
+  return vc.members.filter((m) => !m.user.bot).size;
+}
+
+function scheduleAutoDisconnect(guild) {
+  if (!isConnected) return; // 常駐してないなら何もしない
+  if (emptyTimer) return;   // すでにタイマーあるなら二重に作らない
+
+  emptyTimer = setTimeout(() => {
+    emptyTimer = null;
+
+    const humans = countHumansInFixedVc(guild);
+    const connection = getVoiceConnection(guild.id);
+
+    if (humans === 0 && isConnected && connection) {
+      console.log("⏱ 無人が続いたので自動退出する");
+      disconnectVoice(guild);
+    } else {
+      console.log("✅ 誰か戻った or 接続なし → 自動退出キャンセル扱い");
+    }
+  }, EMPTY_TIMEOUT);
+
+  console.log(`⏳ 無人タイマー開始（${EMPTY_TIMEOUT / 1000}s）`);
+}
+
+function cancelAutoDisconnect() {
+  if (!emptyTimer) return;
+  clearTimeout(emptyTimer);
+  emptyTimer = null;
+  console.log("✅ 無人タイマー解除");
+}
+
+client.on("voiceStateUpdate", (oldState, newState) => {
+  if (!isConnected) return; // ★ 常駐中だけ監視
+
+  const guild = newState.guild ?? oldState.guild;
+  if (!guild) return;
+
+  const fixedVc = getFixedVoiceChannel(guild);
+  if (!fixedVc) return;
+
+  const beforeId = oldState.channelId;
+  const afterId = newState.channelId;
+
+  const touchedFixed =
+    beforeId === fixedVc.id || afterId === fixedVc.id;
+
+  if (!touchedFixed) return;
+
+  const humans = countHumansInFixedVc(guild);
+  console.log(`👥 fixedVC humans: ${humans}`);
+
+  if (humans === 0) {
+    scheduleAutoDisconnect(guild);
+  } else {
+    cancelAutoDisconnect();
   }
 });
 
