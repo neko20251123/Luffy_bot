@@ -328,6 +328,10 @@ const soundFiles = fs.existsSync(SOUND_DIR)
   : [];
 
 let activePlayer = createAudioPlayer();
+activePlayer.on("error", (err) => {
+  console.error("❌ AudioPlayer error:", err?.message ?? err);
+  console.error(err);
+});
 let soundLastAt = 0;
 const SOUND_COOLDOWN_MS = 1500;
 
@@ -347,24 +351,43 @@ function formatBerries(n) {
   return `${n}ベリー`;
 }
 
-// 接続（常駐）
 async function ensureVoiceConnected(guild) {
   const fixedVc = getFixedVoiceChannel(guild);
   if (!fixedVc) return { ok: false, reason: "固定VCが見つからねぇ！" };
+
+  console.log("🎙 fixedVc:", fixedVc.name, "type:", fixedVc.type);
 
   // 既に接続してるならそれを使う
   const existing = getVoiceConnection(guild.id);
   if (existing) return { ok: true, connection: existing, channel: fixedVc };
 
   const connection = joinVoiceChannel({
-  channelId: fixedVc.id,
-  guildId: fixedVc.guild.id,
-  adapterCreator: fixedVc.guild.voiceAdapterCreator,
-  selfDeaf: false,
-  selfMute: false,
+    channelId: fixedVc.id,
+    guildId: fixedVc.guild.id,
+    adapterCreator: fixedVc.guild.voiceAdapterCreator,
+    selfDeaf: false,
+    selfMute: false,
   });
 
-  // 接続安定待ち（失敗時に早期でわかる）
+  // ★ connection 作った「後」にイベントを貼る
+  connection.on("error", (err) => {
+    console.error("❌ VoiceConnection error:", err?.message ?? err);
+    console.error(err);
+  });
+
+  connection.on("stateChange", (oldState, newState) => {
+    console.log("🔌 vc state:", oldState.status, "→", newState.status);
+
+    const net = newState.networking;
+    if (net?.udp) {
+      console.log("🌐 udp:", {
+        local: net.udp.socket?.address?.(),
+        remote: net.udp.remote,
+      });
+    }
+  });
+
+  // 接続安定待ち
   try {
     await entersState(connection, VoiceConnectionStatus.Ready, 10_000);
   } catch {
@@ -372,9 +395,7 @@ async function ensureVoiceConnected(guild) {
     return { ok: false, reason: "VC接続に失敗した！権限/ミュート/VC種類を確認してくれ！" };
   }
 
-  // プレイヤー購読（常駐）
   connection.subscribe(activePlayer);
-
   return { ok: true, connection, channel: fixedVc };
 }
 
