@@ -376,16 +376,20 @@ async function ensureVoiceConnected(guild) {
   });
 
   connection.on("stateChange", (oldState, newState) => {
-    console.log("🔌 vc state:", oldState.status, "→", newState.status);
+  console.log("🔌 vc state:", oldState.status, "→", newState.status);
 
-    const net = newState.networking;
-    if (net?.udp) {
+  const net = newState?.state?.networking;
+  if (net?.udp) {
+    try {
       console.log("🌐 udp:", {
         local: net.udp.socket?.address?.(),
         remote: net.udp.remote,
       });
+    } catch (e) {
+      console.log("🌐 udp: (print failed)", e?.message ?? e);
     }
-  });
+  }
+});
 
   // 接続安定待ち
   try {
