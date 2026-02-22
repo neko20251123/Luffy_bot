@@ -375,10 +375,10 @@ async function ensureVoiceConnected(guild) {
     console.error(err);
   });
 
-  connection.on("stateChange", (oldState, newState) => {
+connection.on("stateChange", (oldState, newState) => {
   console.log("🔌 vc state:", oldState.status, "→", newState.status);
 
-  const net = newState?.state?.networking;
+  const net = newState.networking;
   if (net?.udp) {
     try {
       console.log("🌐 udp:", {
