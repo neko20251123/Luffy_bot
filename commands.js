@@ -13,6 +13,17 @@ const commands = [
     )
     .addSubcommand((sub) =>
       sub.setName("dc").setDescription("固定VCから退出（切断）")
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName("bounty")
+        .setDescription("懸賞金を発表する")
+        .addUserOption((opt) =>
+          opt
+            .setName("target")
+            .setDescription("対象ユーザー（未指定なら自分）")
+            .setRequired(false)
+        )
     ),
 ].map((c) => c.toJSON());
 
