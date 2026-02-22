@@ -20,12 +20,12 @@ const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
 
 (async () => {
   try {
-    console.log("🌍 グローバルコマンド登録中...");
+    console.log("⏳ コマンド登録中...");
     await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID), // ← グローバル
+      Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
       { body: commands }
     );
-    console.log("✅ グローバルコマンド登録完了");
+    console.log("✅ コマンド登録完了");
   } catch (e) {
     console.error(e);
   }
