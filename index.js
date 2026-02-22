@@ -375,42 +375,8 @@ async function ensureVoiceConnected(guild) {
     console.error(err);
   });
 
-connection.on("stateChange", (oldState, newState) => {
+connection.once("stateChange", (oldState, newState) => {
   console.log("🔌 vc state:", oldState.status, "→", newState.status);
-
-  // newStateに何があるかを見る（networkingがあるか確定）
-  try {
-    console.log("🧩 vc newState keys:", Object.keys(newState));
-  } catch {}
-
-  const n1 = newState?.networking;
-  const n2 = connection.state?.networking;
-
-  console.log("🌐 networking exists:", {
-    "newState.networking": !!n1,
-    "connection.state.networking": !!n2,
-  });
-
-  // udp情報（存在しなくても出す）
-  console.log("🌐 udp exists:", {
-    "n1.udp": !!n1?.udp,
-    "n2.udp": !!n2?.udp,
-  });
-
-  // remote / local（存在したら出す）
-  try {
-    console.log("🌐 udp remote:", {
-      n1: n1?.udp?.remote,
-      n2: n2?.udp?.remote,
-    });
-  } catch {}
-
-  try {
-    console.log("🌐 udp local:", {
-      n1: n1?.udp?.socket?.address?.(),
-      n2: n2?.udp?.socket?.address?.(),
-    });
-  } catch {}
 });
 
   // 接続安定待ち
@@ -473,8 +439,9 @@ async function playRandomSound(guild) {
   const filePath = path.join(SOUND_DIR, sound);
   console.log("📁 path:", filePath);
 
- const resource = createAudioResource(filePath);
-
+  const resource = createAudioResource(filePath, {
+    inputType: StreamType.Arbitrary,
+  });
   // 状態ログ（毎回つけてもOK。重複防止したいなら外に出してもいい）
   activePlayer.removeAllListeners("stateChange");
   activePlayer.on("stateChange", (oldState, newState) => {
