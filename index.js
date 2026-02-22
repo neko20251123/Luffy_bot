@@ -591,9 +591,8 @@ client.on("messageCreate", async (message) => {
   if (!TARGET_CHANNEL_ID) return;
   if (message.channel.id !== TARGET_CHANNEL_ID) return;
 
-  const trimmed = message.content.trimStart();
-  const isLuffy = trimmed.startsWith("ルフィ ") || trimmed.startsWith("ルフィ　");
-  if (!isLuffy) return;
+  const trimmed = message.content.trim();
+  if (!trimmed.startsWith("ルフィ")) return;
 
   const now = Date.now();
   if (now - lastReplyAt < COOLDOWN_MS) return;
