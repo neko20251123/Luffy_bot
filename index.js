@@ -517,17 +517,26 @@ return { ok: true, connection, channel: fixedVc };
 // 切断
 function disconnectVoice(guild) {
   const connection = getVoiceConnection(guild.id);
+
+  // connectionがあれば破棄
   if (connection) {
     try { connection.destroy(); } catch {}
-
-    isConnected = false;
-    console.log("🔴 常駐モード終了");
-
-    cancelAutoDisconnect(); // ここでタイマー停止が一番安全
-
-    return true;
   }
-  return false;
+
+  // connectionが取れなくても、Botが固定VCに残ってたら強制で抜ける
+  const fixedVc = getFixedVoiceChannel(guild);
+  const me = guild.members.me; // v14ならこれ
+  if (fixedVc && me?.voice?.channelId === fixedVc.id) {
+    me.voice.disconnect().catch(() => {});
+  }
+
+  // ✅ここが重要：成功/失敗に関係なく常駐終了処理は必ずやる
+  isConnected = false;
+  cancelAutoDisconnect();
+  console.log("🔴 常駐モード終了");
+
+  // ✅ dcコマンド側で「抜けた！」って言いたいので true を返す運用でOK
+  return true;
 }
 
 // 再生
