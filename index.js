@@ -577,6 +577,7 @@ client.once("ready", () => {
 // 🗣 会話（通常チャット）
 // ==========================
 client.on("messageCreate", async (message) => {
+  console.log("📩 message:", message.content);
   if (message.author.bot) return;
 
   // ✅ 「固定VCのテキストチャット」だけ読み上げ
