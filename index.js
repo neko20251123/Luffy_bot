@@ -542,6 +542,7 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.editReply("❌ お前、固定VC（ラウンジ）に入ってから呼べ！");
         return;
       }
+
       const ensure = await ensureVoiceConnected(interaction.guild);
       if (!ensure.ok) {
         await interaction.editReply(`❌ ${ensure.reason}`);
@@ -551,6 +552,14 @@ client.on("interactionCreate", async (interaction) => {
       // 🟢 常駐モード開始は join 成功時だけ
       isConnected = true;
       console.log("🟢 常駐モード開始");
+
+      // ✅ joinしたらランダムSEを1回鳴らす（失敗してもjoin自体は成功扱い）
+      try {
+        const r = await playRandomSound(interaction.guild);
+        if (!r.ok) console.log("⚠️ join時サウンド失敗:", r.reason);
+      } catch (e) {
+        console.log("⚠️ join時サウンド例外:", e);
+      }
 
       // ★ 無人ならタイマー開始
       cancelAutoDisconnect(); // 念のためリセット
