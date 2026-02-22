@@ -357,6 +357,23 @@ activePlayer.on("error", (err) => {
 let soundLastAt = 0;
 const SOUND_COOLDOWN_MS = 1500;
 
+// ==========================
+// コマンド実行者がVCにいるかチェック
+// 実行者がチャンネルに上がってないとコマンド仕様不可にするため
+// ==========================
+function isInvokerInFixedVc(interaction) {
+  const guild = interaction.guild;
+  if (!guild) return false;
+
+  const fixedVc = getFixedVoiceChannel(guild);
+  if (!fixedVc) return false;
+
+  const member = interaction.member; // GuildMember
+  const userChannelId = member?.voice?.channelId;
+
+  return userChannelId === fixedVc.id;
+}
+
 // 固定VC取得
 function getFixedVoiceChannel(guild) {
   const vc = guild.channels.cache.get(LUFFY_VOICE_CHANNEL_ID);
@@ -521,6 +538,10 @@ client.on("interactionCreate", async (interaction) => {
 
   try {
     if (sub === "join") {
+      if (!isInvokerInFixedVc(interaction)) {
+        await interaction.editReply("❌ お前、固定VC（ラウンジ）に入ってから呼べ！");
+        return;
+      }
       const ensure = await ensureVoiceConnected(interaction.guild);
       if (!ensure.ok) {
         await interaction.editReply(`❌ ${ensure.reason}`);
@@ -543,6 +564,10 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     if (sub === "dc") {
+      if (!isInvokerInFixedVc(interaction)) {
+        await interaction.editReply("❌ お前、固定VC（ラウンジ）に入ってから呼べ！");
+        return;
+      }
       const ok = disconnectVoice(interaction.guild); // ※あとでactiveConnection方式にしてもOK
       if (ok) {
         await interaction.editReply("👋 了解！固定VCから抜けた！");
@@ -553,11 +578,23 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     if (sub === "sound") {
+      if (!isInvokerInFixedVc(interaction)) {
+        await interaction.editReply("❌ 固定VC（ラウンジ）にいる時だけ鳴らせるぞ！");
+        return;
+      }
+
       const r = await playRandomSound(interaction.guild);
       if (!r.ok) {
         await interaction.editReply(`❌ ${r.reason}`);
         return;
       }
+
+      // 再生成功後のみチェック
+      const humans = countHumansInFixedVc(interaction.guild);
+      if (humans === 0) {
+        scheduleAutoDisconnect(interaction.guild);
+      }
+
       await interaction.editReply("🎧 ルフィがサウンドを流しました！");
       return;
     }
