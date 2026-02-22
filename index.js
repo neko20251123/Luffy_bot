@@ -52,7 +52,10 @@ function runOpenJtalk(text) {
     const openjtalk = spawn("open_jtalk", [
       "-x", "/var/lib/mecab/dic/open-jtalk/naist-jdic",
       "-m", "/usr/share/hts-voice/nitech-jp-atr503-m001/nitech_jp_atr503_m001.htsvoice",
-      "-ow", TTS_TMP
+      "-r", "1.2",
+      "-fm", "2.6",
+      "-jf", "1.7",
+      "-ow", TTS_TMP  // 最後に出力
     ]);
 
     openjtalk.stdin.write(text);
