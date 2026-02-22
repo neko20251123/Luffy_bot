@@ -90,7 +90,7 @@ async function speakLight(text, guild) {
         inputType: StreamType.Arbitrary,
       });
 
-      ttsPlayer.play(resource);
+      player.play(resource);
 
       // ✅ この再生が終わるまで待つ
       await waitPlayerIdle();
@@ -396,26 +396,24 @@ const soundFiles = fs.existsSync(SOUND_DIR)
   ? fs.readdirSync(SOUND_DIR).filter((f) => f.endsWith(".mp3") || f.endsWith(".wav"))
   : [];
 
-let sePlayer = createAudioPlayer();
-let ttsPlayer = createAudioPlayer();
+let player = createAudioPlayer();
 
 // 互換のため（既存コードが activePlayer を参照してるので）
 // いったんSEは sePlayer、TTSは ttsPlayer を使うように下で直す
 
 async function waitPlayerIdle(timeoutMs = 30_000) {
   try {
-    if (ttsPlayer.state.status === AudioPlayerStatus.Idle) return;
-    await entersState(ttsPlayer, AudioPlayerStatus.Idle, timeoutMs);
+    if (player.state.status === AudioPlayerStatus.Idle) return;
+    await entersState(player, AudioPlayerStatus.Idle, timeoutMs);
   } catch {
     console.log("⚠️ waitPlayerIdle timeout/failed");
   }
 }
 let lastGuildForPlayer = null;
 
-sePlayer.on("stateChange", (oldState, newState) =>  {
+player.on("stateChange", (oldState, newState) =>  {
   console.log("🎵 state:", oldState.status, "→", newState.status);
 
-  // 再生終了
   if (newState.status === AudioPlayerStatus.Idle) {
     const guild = lastGuildForPlayer;
     if (!guild) return;
@@ -423,7 +421,6 @@ sePlayer.on("stateChange", (oldState, newState) =>  {
     const humans = countHumansInFixedVc(guild);
     const connection = getVoiceConnection(guild.id);
 
-    // 人がいない & 接続が残ってるなら抜ける
     if (humans === 0 && connection) {
       console.log("🧹 sound再生終了 & 無人なので退出");
       disconnectVoice(guild);
@@ -432,10 +429,12 @@ sePlayer.on("stateChange", (oldState, newState) =>  {
     }
   }
 });
-sePlayer.on("error", (err) => {
+
+player.on("error", (err) => {
   console.error("❌ AudioPlayer error:", err?.message ?? err);
   console.error(err);
 });
+
 let soundLastAt = 0;
 const SOUND_COOLDOWN_MS = 1500;
 
@@ -508,8 +507,8 @@ connection.once("stateChange", (oldState, newState) => {
     return { ok: false, reason: "VC接続に失敗した！権限/ミュート/VC種類を確認してくれ！" };
   }
 
-connection.subscribe(sePlayer);
-connection.subscribe(ttsPlayer);  return { ok: true, connection, channel: fixedVc };
+connection.subscribe(player);
+return { ok: true, connection, channel: fixedVc };
 }
 
 // 切断
@@ -560,7 +559,7 @@ async function playRandomSound(guild) {
 
 lastGuildForPlayer = guild;
 
-sePlayer.play(resource);
+player.play(resource);
 console.log("🎧 play() called");
 
   return { ok: true };
@@ -571,6 +570,7 @@ client.once("ready", () => {
   console.log(`🎯 Chat channel: ${TARGET_CHANNEL_ID}`);
   console.log(`🔊 Fixed VC: ${LUFFY_VOICE_CHANNEL_ID}`);
   console.log(`🎧 sounds: ${soundFiles.length} files`);
+  console.log("🤖 bot user id:", client.user.id);
 });
 
 // ==========================
