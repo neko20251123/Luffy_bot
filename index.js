@@ -328,6 +328,28 @@ const soundFiles = fs.existsSync(SOUND_DIR)
   : [];
 
 let activePlayer = createAudioPlayer();
+let lastGuildForPlayer = null;
+
+activePlayer.on("stateChange", (oldState, newState) => {
+  console.log("🎵 state:", oldState.status, "→", newState.status);
+
+  // 再生終了
+  if (newState.status === AudioPlayerStatus.Idle) {
+    const guild = lastGuildForPlayer;
+    if (!guild) return;
+
+    const humans = countHumansInFixedVc(guild);
+    const connection = getVoiceConnection(guild.id);
+
+    // 人がいない & 接続が残ってるなら抜ける
+    if (humans === 0 && connection) {
+      console.log("🧹 sound再生終了 & 無人なので退出");
+      disconnectVoice(guild);
+    } else {
+      console.log("✅ 再生終了だが人がいる or 接続なし → 維持");
+    }
+  }
+});
 activePlayer.on("error", (err) => {
   console.error("❌ AudioPlayer error:", err?.message ?? err);
   console.error(err);
@@ -442,14 +464,10 @@ async function playRandomSound(guild) {
   const resource = createAudioResource(filePath, {
     inputType: StreamType.Arbitrary,
   });
-  // 状態ログ（毎回つけてもOK。重複防止したいなら外に出してもいい）
-  activePlayer.removeAllListeners("stateChange");
-  activePlayer.on("stateChange", (oldState, newState) => {
-    console.log("🎵 state:", oldState.status, "→", newState.status);
-  });
 
-  activePlayer.play(resource);
-  console.log("🎧 play() called");
+lastGuildForPlayer = guild;
+activePlayer.play(resource);
+console.log("🎧 play() called");
 
   return { ok: true };
 }
