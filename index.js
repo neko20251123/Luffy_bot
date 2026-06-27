@@ -393,6 +393,70 @@ const BOUNTY_GENERIC = [
 let lastReplyAt = 0;
 const COOLDOWN_MS = 5 * 1000;
 
+// ====== ルフィ説明メッセージ ======
+
+let lastLuffyGuideMessageId = null;
+
+const luffyGuideText = [
+
+  "📘 **ルフィBotの使い方**",
+
+  "",
+
+  "俺は「ルフィ」ってキーワードに反応するぞ！読んでみてな！",
+
+  "",
+
+  "### 💬 チャット反応",
+
+  "・`ルフィ` から始まるメッセージにランダムで返事する",
+
+  "",
+
+  "### 🔊 VCコマンド",
+
+  "・`/ルフィ join`：固定VCにルフィを呼ぶ",
+
+  "・`/ルフィ sound`：ランダム音声を流す",
+
+  "・`/ルフィ dc`：固定VCから退出させる",
+
+  "",
+
+  "### 🏴‍☠️ お遊びコマンド",
+
+  "・`/ルフィ bounty`：懸賞金をランダム発表",
+
+].join("\n");
+
+async function refreshLuffyGuide(channel) {
+
+  if (!channel || !channel.isTextBased()) return;
+
+  if (lastLuffyGuideMessageId) {
+
+    try {
+
+      const old = await channel.messages.fetch(lastLuffyGuideMessageId);
+
+      await old.delete();
+
+    } catch {
+
+      // 既に消えていたら無視
+
+    }
+
+    lastLuffyGuideMessageId = null;
+
+  }
+
+  const sent = await channel.send(luffyGuideText);
+
+  lastLuffyGuideMessageId = sent.id;
+
+}
+
 // ====== サウンド ======
 const SOUND_DIR = path.join(__dirname, "sounds");
 const soundFiles = fs.existsSync(SOUND_DIR)
@@ -604,18 +668,26 @@ client.on("messageCreate", async (message) => {
   if (!TARGET_CHANNEL_ID) return;
   if (message.channel.id !== TARGET_CHANNEL_ID) return;
 
-  const trimmed = message.content.trim();
-  if (!trimmed.startsWith("ルフィ")) return;
+    const trimmed = message.content.trim();
+    const isLuffyTrigger = trimmed.startsWith("ルフィ");
 
-  const now = Date.now();
-  if (now - lastReplyAt < COOLDOWN_MS) return;
-  lastReplyAt = now;
+    if (isLuffyTrigger) {
+      const now = Date.now();
 
-  const userMention = `<@${message.author.id}>`;
-  const displayName = message.member?.displayName ?? message.author.username;
-  const line = pick(luffyReplies).replaceAll("{name}", displayName);
+      if (now - lastReplyAt >= COOLDOWN_MS) {
+        lastReplyAt = now;
 
-  await message.channel.send(`${userMention} ${line}`);
+        const userMention = `<@${message.author.id}>`;
+        const displayName = message.member?.displayName ?? message.author.username;
+        const line = pick(luffyReplies).replaceAll("{name}", displayName);
+
+        // ✅ メンションの後に改行してランダム発言
+        await message.channel.send(`${userMention}\n${line}`);
+      }
+    }
+
+    // ✅ 誰かが発言したら常に説明を一番下へ移動
+    await refreshLuffyGuide(message.channel);
 });
 
 // ==========================
